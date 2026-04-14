@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -45,6 +45,96 @@ html {
 @keyframes scrollDown {
   0% { transform: translateY(-50%); }
   100% { transform: translateY(0); }
+}
+
+/* ═══ Shimmer glow on hero CTA ═══ */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.btn-shimmer {
+  background: linear-gradient(110deg, #65bfae 0%, #65bfae 40%, #8fd4c7 50%, #65bfae 60%, #65bfae 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ═══ CTA hover / press ═══ */
+.btn-cta {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.btn-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(101, 191, 174, 0.4);
+}
+.btn-cta:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* ═══ Scroll reveal ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-stagger.visible > *:nth-child(1) { transition-delay: 0.05s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.12s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.19s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.26s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.33s; opacity: 1; transform: translateY(0); }
+.reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.40s; opacity: 1; transform: translateY(0); }
+
+/* ═══ Quiz bounce on select ═══ */
+@keyframes quizBounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.06); }
+  60% { transform: scale(0.97); }
+  100% { transform: scale(1.02); }
+}
+.quiz-bounce {
+  animation: quizBounce 0.35s ease;
+}
+
+/* ═══ FAQ smooth expand ═══ */
+.faq-answer {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.35s ease;
+}
+.faq-answer.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.faq-answer.expanded {
+  max-height: 300px;
+  opacity: 1;
+}
+
+/* ═══ Excursion card tilt ═══ */
+.card-tilt {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+}
+.card-tilt:hover {
+  box-shadow: 0 0 20px rgba(101, 191, 174, 0.25), 0 10px 30px -10px rgba(0,0,0,0.15);
+}
+
+/* ═══ WhatsApp FAB ═══ */
+@keyframes fabPulse {
+  0%, 100% { box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3); }
+  50% { box-shadow: 0 4px 24px rgba(37, 211, 102, 0.5); }
+}
+.wa-fab {
+  animation: fabPulse 2.5s ease-in-out infinite;
 }
 
 /* Custom Select styling to remove default arrow */

@@ -80,6 +80,46 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Scroll reveal observer
+  useEffect(() => {
+    const els = document.querySelectorAll('.reveal, .reveal-stagger');
+    if (!els.length) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    els.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, [done]);
+
+  // Counter animation for stats
+  const counterRef = useRef(null);
+  const [countersVisible, setCountersVisible] = useState(false);
+  useEffect(() => {
+    if (!counterRef.current) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setCountersVisible(true); obs.disconnect(); } }, { threshold: 0.3 });
+    obs.observe(counterRef.current);
+    return () => obs.disconnect();
+  }, []);
+  const AnimCounter = ({ target, suffix = '' }) => {
+    const [val, setVal] = useState(0);
+    useEffect(() => {
+      if (!countersVisible) return;
+      const num = parseFloat(target);
+      const dur = 1500;
+      const steps = 40;
+      const inc = num / steps;
+      let current = 0;
+      const iv = setInterval(() => {
+        current += inc;
+        if (current >= num) { setVal(num); clearInterval(iv); }
+        else setVal(Math.floor(current * 10) / 10);
+      }, dur / steps);
+      return () => clearInterval(iv);
+    }, [countersVisible, target]);
+    const display = Number.isInteger(parseFloat(target)) ? Math.round(val) : val.toFixed(1);
+    return <>{display}{suffix}</>;
+  };
+
   useEffect(() => {
     const iv = setInterval(() => {
       const n = TOASTS_N[Math.floor(Math.random()*TOASTS_N.length)];
@@ -114,9 +154,9 @@ export default function App() {
     <>
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-[100] bg-white shadow-xl rounded-2xl px-5 py-3 flex items-center gap-3 border border-gray-100 max-w-sm" style={{animation:'slideIn .3s ease'}}>
+        <div className="fixed top-4 right-4 z-[100] bg-white shadow-xl rounded-2xl px-5 py-3 hidden md:flex items-center gap-3 border border-gray-100 max-w-sm" style={{animation:'slideIn .3s ease'}}>
           <div className="w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
-            <iconify-icon icon="lucide:tree-palm" width="18" height="18" style={{color:'#0d9488'}}></iconify-icon>
+            <iconify-icon icon="lucide:tree-palm" width="18" height="18" style={{color:'#65bfae'}}></iconify-icon>
           </div>
           <p className="text-sm text-gray-700 font-medium">{toast}</p>
         </div>
@@ -135,8 +175,8 @@ export default function App() {
             <a href="#faq" className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${navSolid ? 'text-gray-600 hover:text-teal-600 hover:bg-gray-100' : 'text-white/90 hover:text-white hover:bg-white/10'}`}>FAQ</a>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={goQuiz} className="hidden lg:flex bg-teal-500 text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-teal-400 transition-colors">Créer mon itinéraire</button>
-            <button className="lg:hidden" onClick={()=>setMenu(!menu)}>
+            <button onClick={goQuiz} aria-label="Créer mon itinéraire personnalisé" className="hidden lg:flex btn-cta bg-teal-500 text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-teal-400">Créer mon itinéraire</button>
+            <button aria-label="Ouvrir le menu de navigation" className="lg:hidden" onClick={()=>setMenu(!menu)}>
               <iconify-icon icon={menu?'lucide:x':'lucide:menu'} width="24" height="24" style={{color: navSolid ? '#374151' : '#fff'}}></iconify-icon>
             </button>
           </div>
@@ -147,27 +187,32 @@ export default function App() {
             <a href="#excursions" className="block text-sm font-medium text-gray-700" onClick={()=>setMenu(false)}>Excursions</a>
             <a href="#story" className="block text-sm font-medium text-gray-700" onClick={()=>setMenu(false)}>Notre histoire</a>
             <a href="#faq" className="block text-sm font-medium text-gray-700" onClick={()=>setMenu(false)}>FAQ</a>
-            <button onClick={()=>{setMenu(false);goQuiz();}} className="w-full bg-teal-500 text-white px-6 py-3 rounded-full text-sm font-semibold">Créer mon itinéraire</button>
+            <button onClick={()=>{setMenu(false);goQuiz();}} className="w-full btn-cta bg-teal-500 text-white px-6 py-3 rounded-full text-sm font-semibold">Créer mon itinéraire</button>
           </div>
         )}
       </nav>
 
+      <main>
       {/* Hero — Full Screen */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <img src="/images/hero.jpg" className="absolute inset-0 w-full h-full object-cover" alt="Langkawi, Malaisie" />
+        <img src="/images/hero-mobile.jpg" className="absolute inset-0 w-full h-full object-cover md:hidden" alt="Semporna, Malaisie" />
+        <img src="/images/hero.jpg" className="absolute inset-0 w-full h-full object-cover hidden md:block" alt="Langkawi, Malaisie" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/50"></div>
-        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight font-bold text-white leading-tight mb-6">
+        {/* Mobile: title top, CTA bottom — Desktop: centered */}
+        <div className="relative z-10 flex flex-col justify-between md:justify-center items-center text-center px-6 max-w-4xl mx-auto h-full min-h-screen py-32 md:py-0">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl tracking-tight font-bold text-white leading-tight mb-6 md:mb-6" style={{fontFamily:"'Playfair Display', serif"}}>
             Explorons la<br />Malaisie ensemble
           </h1>
-          <p className="text-base md:text-lg text-white/80 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
-            Répondez à quelques questions, recevez votre itinéraire sur-mesure gratuitement. Nos experts sur place s'occupent du reste.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onClick={goQuiz} className="bg-teal-500 text-white px-8 py-3.5 rounded-full text-base font-semibold hover:bg-teal-400 transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
-              <iconify-icon icon="lucide:message-circle" width="18" height="18" style={{color:'#fff'}}></iconify-icon> Créer mon itinéraire
-            </button>
-            <a href="#excursions" className="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-3.5 rounded-full text-base font-semibold hover:bg-white/30 transition-colors w-full sm:w-auto text-center">Découvrir nos excursions</a>
+          <div>
+            <p className="text-base md:text-lg text-white/80 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
+              Répondez à quelques questions, recevez votre itinéraire sur-mesure gratuitement. Nos experts sur place s'occupent du reste.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button onClick={goQuiz} className="btn-shimmer btn-cta text-white px-8 py-3.5 rounded-full text-base font-semibold w-full sm:w-auto flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30">
+                <iconify-icon icon="lucide:message-circle" width="18" height="18" style={{color:'#fff'}}></iconify-icon> Créer mon itinéraire
+              </button>
+              <a href="#excursions" className="btn-cta bg-white/20 backdrop-blur-sm border border-white/30 text-white px-8 py-3.5 rounded-full text-base font-semibold hover:bg-white/30 w-full sm:w-auto text-center">Découvrir nos excursions</a>
+            </div>
           </div>
         </div>
       </section>
@@ -230,7 +275,7 @@ export default function App() {
       </section>
 
       {/* Services / How it works — timeline */}
-      <section className="py-28 px-6" style={{background:creamDark}}>
+      <section className="py-28 px-6 reveal" style={{background:creamDark}}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-20">
             <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">Comment ça marche</p>
@@ -239,7 +284,7 @@ export default function App() {
           <div className="relative">
             {/* Connecting line */}
             <div className="hidden md:block absolute top-12 left-[16.67%] right-[16.67%] h-px bg-teal-200"></div>
-            <div className="grid md:grid-cols-3 gap-12 md:gap-8">
+            <div className="grid md:grid-cols-3 gap-12 md:gap-8 reveal-stagger">
               {[
                 { n:'01', title:'Répondez au quiz', desc:'5 questions sur vos envies — durée, style, intérêts. Ça prend 2 minutes.', icon:'lucide:message-circle' },
                 { n:'02', title:'Recevez votre itinéraire', desc:'Un parcours sur-mesure, personnalisé selon vos réponses, envoyé sur WhatsApp.', icon:'lucide:map' },
@@ -251,7 +296,7 @@ export default function App() {
                       <iconify-icon icon={s.icon} width="26" height="26" style={{color:'#fff'}}></iconify-icon>
                     </div>
                   </div>
-                  <div className="text-5xl font-bold text-teal-100 mb-2">{s.n}</div>
+                  <div className="text-5xl font-bold text-teal-500 mb-2">{s.n}</div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
                   <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">{s.desc}</p>
                 </div>
@@ -326,14 +371,14 @@ export default function App() {
                   <div className={`grid gap-4 ${QUIZ[step].options.length > 4 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2'}`}>
                     {QUIZ[step].options.map(opt => (
                       <button key={opt.value} onClick={()=>pick(QUIZ[step].id, opt.value, QUIZ[step].multi, QUIZ[step].maxSelect||3)}
-                        className={`relative text-left p-5 rounded-2xl transition-all group ${isSel(QUIZ[step].id,opt.value) ? 'bg-teal-500 shadow-lg shadow-teal-500/20 scale-[1.02]' : 'bg-white shadow-sm hover:shadow-md hover:scale-[1.01]'}`}>
+                        className={`relative text-left p-5 rounded-2xl transition-all group ${isSel(QUIZ[step].id,opt.value) ? 'bg-teal-500 shadow-lg shadow-teal-500/20 scale-[1.02] quiz-bounce' : 'bg-white shadow-sm hover:shadow-md hover:scale-[1.01]'}`}>
                         {isSel(QUIZ[step].id,opt.value) && (
                           <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
                             <iconify-icon icon="lucide:check" width="12" height="12" style={{color:'#fff'}}></iconify-icon>
                           </div>
                         )}
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isSel(QUIZ[step].id,opt.value)?'bg-white/20':'bg-teal-50'}`}>
-                          <iconify-icon icon={opt.icon} width="24" height="24" style={{color:isSel(QUIZ[step].id,opt.value)?'#fff':'#0d9488'}}></iconify-icon>
+                          <iconify-icon icon={opt.icon} width="24" height="24" style={{color:isSel(QUIZ[step].id,opt.value)?'#fff':'#65bfae'}}></iconify-icon>
                         </div>
                         <div className={`font-bold text-sm mb-1 ${isSel(QUIZ[step].id,opt.value)?'text-white':'text-gray-900'}`}>{opt.label}</div>
                         {opt.desc && <div className={`text-xs leading-relaxed ${isSel(QUIZ[step].id,opt.value)?'text-white/70':'text-gray-400'}`}>{opt.desc}</div>}
@@ -344,7 +389,7 @@ export default function App() {
                   {QUIZ[step].multi && (
                     <div className="mt-8">
                       <button onClick={()=>setStep(s=>s+1)} disabled={!(ans[QUIZ[step].id]||[]).length}
-                        className="bg-teal-500 text-white px-10 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2">
+                        className="btn-cta bg-teal-500 text-white px-10 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2">
                         Continuer <iconify-icon icon="lucide:arrow-right" width="16" height="16" style={{color:'#fff'}}></iconify-icon>
                       </button>
                     </div>
@@ -386,7 +431,7 @@ export default function App() {
                       <span className="text-sm text-gray-400 leading-relaxed">J'accepte que mes données soient utilisées pour recevoir mon itinéraire.</span>
                     </label>
                     <button type="submit" disabled={!contact.wa||!contact.ok}
-                      className="bg-teal-500 text-white py-3.5 px-10 rounded-full text-sm font-semibold hover:bg-teal-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2 mt-2">
+                      className="btn-cta bg-teal-500 text-white py-3.5 px-10 rounded-full text-sm font-semibold hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2 mt-2">
                       <iconify-icon icon="simple-icons:whatsapp" width="16" height="16" style={{color:'#fff'}}></iconify-icon> Recevoir mon itinéraire
                     </button>
                   </form>
@@ -401,7 +446,7 @@ export default function App() {
             <div className="absolute inset-0 bg-teal-700/60"></div>
             <div className="relative z-10 text-center px-6">
               <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mx-auto mb-6 text-teal-600 shadow-xl">
-                <iconify-icon icon="lucide:check" width="36" height="36" style={{color:'#0d9488'}}></iconify-icon>
+                <iconify-icon icon="lucide:check" width="36" height="36" style={{color:'#65bfae'}}></iconify-icon>
               </div>
               <h3 className="text-4xl md:text-5xl tracking-tight font-bold text-white mb-4">Merci !</h3>
               <p className="text-lg text-white/80 max-w-lg mx-auto mb-10">Nous vous envoyons votre itinéraire personnalisé sur WhatsApp dans les prochaines minutes.</p>
@@ -420,7 +465,9 @@ export default function App() {
           <h2 className="text-3xl md:text-5xl tracking-tight font-bold text-gray-900 text-center">Nos destinations populaires</h2>
         </div>
         <div className="relative py-8" style={{background:cream}}>
-          <div className="flex gap-5 px-6" style={{animation:'scrollStrip 40s linear infinite', width:'max-content'}}>
+          <div className="flex gap-5 px-6" style={{animation:'scrollStrip 40s linear infinite', width:'max-content'}}
+            onMouseEnter={e => e.currentTarget.style.animationPlayState = 'paused'}
+            onMouseLeave={e => e.currentTarget.style.animationPlayState = 'running'}>
             {[...EXCURSIONS, ...EXCURSIONS].map((ex,i) => {
               const rotations = [-3, 2, -2, 3, -1, 2, -3, 1, 3, -2, 2];
               const rot = rotations[i % rotations.length];
@@ -429,12 +476,16 @@ export default function App() {
                 : <a href={`https://wa.me/${WA}?text=${encodeURIComponent(`Bonjour, je suis intéressé(e) par l'excursion ${ex.name} !`)}`} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
               return (
                 <Card key={i}
-                  className="shrink-0 w-48 h-64 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105 relative group cursor-pointer bg-white p-1.5"
+                  className="shrink-0 w-64 sm:w-72 h-80 sm:h-96 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105 relative group cursor-pointer bg-white p-1.5 card-tilt"
                   style={{transform:`rotate(${rot}deg)`}}>
                   <img src={ex.image} className="w-full h-full object-cover rounded-xl" alt={ex.name} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 m-1.5">
-                    <div className="text-white text-xs font-semibold">{ex.name}</div>
-                    <div className="text-white/70 text-xs">{ex.lieu}</div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent rounded-xl flex flex-col justify-end p-5 m-1.5">
+                    <div className="text-white font-bold text-sm mb-0.5">{ex.name}</div>
+                    <div className="text-white/60 text-xs mb-3">{ex.lieu}</div>
+                    <div className="flex items-center gap-1.5 text-white/80 text-xs font-medium group-hover:text-white transition-colors">
+                      <span>Découvrir</span>
+                      <iconify-icon icon="lucide:arrow-right" width="14" height="14" style={{color:'currentColor'}} className="group-hover:translate-x-1 transition-transform"></iconify-icon>
+                    </div>
                   </div>
                 </Card>
               );
@@ -444,7 +495,7 @@ export default function App() {
       </section>
 
       {/* About — editorial with overlapping images */}
-      <section id="about" className="py-28 px-6" style={{background:cream}}>
+      <section id="about" className="py-28 px-6 reveal" style={{background:cream}}>
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
             <div>
@@ -466,10 +517,10 @@ export default function App() {
             {/* Overlapping images */}
             <div className="relative h-[280px] sm:h-[360px] lg:h-[440px]">
               <div className="absolute top-0 right-0 w-[65%] h-[75%] rounded-2xl overflow-hidden shadow-2xl shadow-black/10">
-                <img src="/images/bbq-cruise.webp" className="w-full h-full object-cover" alt="" />
+                <img src="/images/bbq-cruise.webp" className="w-full h-full object-cover" loading="lazy" alt="Croisière BBQ au coucher du soleil à Langkawi" />
               </div>
               <div className="absolute bottom-0 left-0 w-[55%] h-[65%] rounded-2xl overflow-hidden shadow-2xl shadow-black/10 border-4" style={{borderColor:cream}}>
-                <img src="/images/skycab.jpg" className="w-full h-full object-cover" alt="" />
+                <img src="/images/skycab.jpg" className="w-full h-full object-cover" loading="lazy" alt="Téléphérique SkyCab à Langkawi" />
               </div>
               <div className="absolute top-6 left-6 bg-teal-500 text-white rounded-xl px-4 py-3 shadow-lg z-10">
                 <div className="text-lg font-bold">4 ans</div>
@@ -477,7 +528,7 @@ export default function App() {
               </div>
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 reveal-stagger">
             {[
               { icon:'lucide:tree-palm', title:'Îles paradisiaques', desc:'Langkawi, Tioman, Perhentian — le paradis existe.' },
               { icon:'lucide:users', title:'Guides francophones', desc:'Un réseau de guides locaux qui parlent votre langue.' },
@@ -497,8 +548,8 @@ export default function App() {
       </section>
 
       {/* Stats banner — glassmorphism */}
-      <section className="relative py-20 px-6">
-        <img src="/images/cameron-highlands.jpg" className="absolute inset-0 w-full h-full object-cover" alt="" />
+      <section ref={counterRef} className="relative py-20 px-6">
+        <img src="/images/cameron-highlands.jpg" className="absolute inset-0 w-full h-full object-cover" loading="lazy" alt="Plantations de thé à Cameron Highlands" />
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 md:p-14">
@@ -510,7 +561,14 @@ export default function App() {
                 { n:'4 ans', label:'Basés en Malaisie' },
               ].map((s,i) => (
                 <div key={i} className="text-center">
-                  <div className="text-4xl md:text-5xl font-bold text-white mb-1">{s.n}</div>
+                  <div className="text-4xl md:text-5xl font-bold text-white mb-1">
+                    {countersVisible ? (
+                      s.n === '200+' ? <><AnimCounter target={200} />+</> :
+                      s.n === '50+' ? <><AnimCounter target={50} />+</> :
+                      s.n === '4.9' ? <AnimCounter target={4.9} /> :
+                      s.n
+                    ) : '0'}
+                  </div>
                   <div className="text-sm text-white/60 font-medium">{s.label}</div>
                 </div>
               ))}
@@ -520,16 +578,16 @@ export default function App() {
       </section>
 
       {/* Our Story — editorial split with staggered images */}
-      <section id="story" className="py-28 px-6" style={{background:creamDark}}>
+      <section id="story" className="py-28 px-6 reveal" style={{background:creamDark}}>
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
             {/* Staggered photos */}
             <div className="relative h-[300px] sm:h-[400px] lg:h-[480px]">
               <div className="absolute top-0 left-0 w-[60%] h-[70%] rounded-3xl overflow-hidden shadow-2xl shadow-black/10">
-                <img src="/images/snorkeling-tioman.jpg" className="w-full h-full object-cover" alt="" />
+                <img src="/images/snorkeling-tioman.jpg" className="w-full h-full object-cover" loading="lazy" alt="Snorkeling dans les eaux cristallines de Tioman" />
               </div>
               <div className="absolute bottom-0 right-0 w-[55%] h-[60%] rounded-3xl overflow-hidden shadow-2xl shadow-black/10 border-4" style={{borderColor:creamDark}}>
-                <img src="/images/semporna.jpg" className="w-full h-full object-cover" alt="" />
+                <img src="/images/semporna.jpg" className="w-full h-full object-cover" loading="lazy" alt="Plongée à Semporna, Bornéo" />
               </div>
               <div className="absolute bottom-8 left-8 bg-white rounded-2xl p-5 shadow-xl z-10 max-w-[200px]">
                 <div className="text-2xl mb-1">🌴</div>
@@ -573,7 +631,7 @@ export default function App() {
       </section>
 
       {/* Testimonials — featured + grid */}
-      <section className="py-28 px-6" style={{background:cream}}>
+      <section className="py-28 px-6 reveal" style={{background:cream}}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">Témoignages</p>
@@ -585,13 +643,13 @@ export default function App() {
               <div className="absolute top-4 right-6 text-[120px] font-bold text-white/10 leading-none select-none">"</div>
               <div className="relative z-10">
                 <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="lucide:star" width="16" height="16" style={{color:'#fbbf24'}}></iconify-icon>)}
+                  {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="mdi:star" width="16" height="16" style={{color:'#fbbf24'}}></iconify-icon>)}
                 </div>
                 <p className="text-lg md:text-xl text-white leading-relaxed mb-8 font-medium">
                   "L'itinéraire était parfait pour notre couple. La croisière BBQ à Langkawi restera un de nos plus beaux souvenirs. Tout était fluide et magique."
                 </p>
                 <div className="flex items-center gap-4">
-                  <img src="https://i.pravatar.cc/150?img=32" className="w-12 h-12 rounded-full object-cover border-2 border-white/30" alt="" />
+                  <img src="https://i.pravatar.cc/150?img=32" className="w-12 h-12 rounded-full object-cover border-2 border-white/30" loading="lazy" alt="Photo de Sophie M." />
                   <div>
                     <div className="font-bold text-white text-sm">Sophie M.</div>
                     <div className="text-xs text-white/60">Paris — Couple</div>
@@ -607,7 +665,7 @@ export default function App() {
               ].map((t,i) => (
                 <div key={i} className="flex-1 rounded-2xl p-7 hover:shadow-md transition-all" style={{background:creamDark}}>
                   <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="lucide:star" width="12" height="12" style={{color:'#14b8a6'}}></iconify-icon>)}
+                    {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="mdi:star" width="12" height="12" style={{color:'#65bfae'}}></iconify-icon>)}
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed mb-5 italic">"{t.text}"</p>
                   <div className="flex items-center gap-3">
@@ -625,7 +683,7 @@ export default function App() {
       </section>
 
       {/* FAQ — numbered cards */}
-      <section id="faq" className="py-28 px-6" style={{background:creamDark}}>
+      <section id="faq" className="py-28 px-6 reveal" style={{background:creamDark}}>
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">FAQ</p>
@@ -639,9 +697,9 @@ export default function App() {
                     {String(i+1).padStart(2,'0')}
                   </span>
                   <span className="font-semibold text-gray-900 text-sm flex-1">{item.q}</span>
-                  <iconify-icon icon={faq===i?'lucide:minus':'lucide:plus'} width="18" height="18" style={{color:faq===i?'#0d9488':'#d1d5db'}}></iconify-icon>
+                  <iconify-icon icon={faq===i?'lucide:minus':'lucide:plus'} width="18" height="18" style={{color:faq===i?'#65bfae':'#d1d5db'}}></iconify-icon>
                 </button>
-                {faq===i && <div className="px-5 pb-5 pl-[4.25rem] text-sm text-gray-500 leading-relaxed">{item.a}</div>}
+                <div className={`faq-answer pl-[4.25rem] text-sm text-gray-500 leading-relaxed ${faq===i ? 'expanded px-5 pb-5' : 'collapsed'}`}>{item.a}</div>
               </div>
             ))}
           </div>
@@ -654,7 +712,7 @@ export default function App() {
       <section className="overflow-hidden">
         <div className="grid lg:grid-cols-2 min-h-[480px]">
           <div className="relative hidden lg:block">
-            <img src="/images/hero.jpg" className="absolute inset-0 w-full h-full object-cover" alt="" />
+            <img src="/images/hero.jpg" className="absolute inset-0 w-full h-full object-cover" loading="lazy" alt="Paysage tropical en Malaisie" />
           </div>
           <div className="flex flex-col justify-center px-10 md:px-20 py-20" style={{background:creamDark}}>
             <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">Commencer l'aventure</p>
@@ -702,6 +760,13 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+    {/* WhatsApp FAB — mobile, hidden in hero */}
+    <a href={`https://wa.me/${WA}`} target="_blank" rel="noopener noreferrer" aria-label="Nous contacter sur WhatsApp"
+      className={`wa-fab fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25d366] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 lg:hidden ${navSolid ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <iconify-icon icon="simple-icons:whatsapp" width="28" height="28" style={{color:'#fff'}}></iconify-icon>
+    </a>
+    </main>
     </>
   );
 }

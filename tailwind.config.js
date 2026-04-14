@@ -9,6 +9,11 @@ export default {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
+      colors: {
+        teal: {
+          500: '#65bfae',
+        },
+      },
     },
   },
   plugins: [],

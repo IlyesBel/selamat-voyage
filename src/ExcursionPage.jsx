@@ -11,7 +11,7 @@ const EXCURSIONS_DATA = {
     lieu: 'Langkawi, Malaisie',
     tags: ['Aventure', 'Jet-ski', 'Îles', 'Plage'],
     hero: '/images/jetski.jpg',
-    video: '/images/jetski-hero.mov',
+    video: '/images/jetski-hero.mp4',
     gallery: ['/images/jetski-1.jpg', '/images/jetski-2.jpg'],
     tested: true,
     duration: '3 à 4 heures',
@@ -578,6 +578,7 @@ export default function ExcursionPage() {
   const [scrollY, setScrollY] = useState(0);
   const galleryRef = useRef(null);
   const videoRef = useRef(null);
+  const [lightbox, setLightbox] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -585,6 +586,68 @@ export default function ExcursionPage() {
     window.addEventListener('scroll', h, {passive:true});
     return () => window.removeEventListener('scroll', h);
   }, [slug]);
+
+  // Scroll reveal
+  useEffect(() => {
+    const els = document.querySelectorAll('.reveal, .reveal-stagger');
+    if (!els.length) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    els.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, [slug]);
+
+  // Dynamic SEO meta tags
+  useEffect(() => {
+    if (!data) return;
+    const base = 'https://selamatvoyage.com';
+    const title = `${data.name} — Selamat Voyage | Excursion en Malaisie`;
+    const desc = data.description?.[0] || `Découvrez l'excursion ${data.name} avec Selamat Voyage.`;
+    const img = `${base}${data.hero}`;
+    const url = `${base}/excursion/${slug}`;
+
+    document.title = title;
+    const setMeta = (attr, key, content) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute('content', content);
+    };
+    setMeta('name', 'description', desc);
+    setMeta('property', 'og:title', title);
+    setMeta('property', 'og:description', desc);
+    setMeta('property', 'og:image', img);
+    setMeta('property', 'og:url', url);
+    setMeta('property', 'og:type', 'website');
+    setMeta('name', 'twitter:title', title);
+    setMeta('name', 'twitter:description', desc);
+    setMeta('name', 'twitter:image', img);
+
+    let canon = document.querySelector('link[rel="canonical"]');
+    if (!canon) { canon = document.createElement('link'); canon.setAttribute('rel', 'canonical'); document.head.appendChild(canon); }
+    canon.setAttribute('href', url);
+
+    // JSON-LD
+    let ldScript = document.querySelector('script[data-seo="excursion"]');
+    if (!ldScript) { ldScript = document.createElement('script'); ldScript.type = 'application/ld+json'; ldScript.setAttribute('data-seo', 'excursion'); document.head.appendChild(ldScript); }
+    ldScript.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'TouristTrip',
+      name: data.name,
+      description: desc,
+      image: img,
+      url: url,
+      touristType: data.tags || [],
+      provider: { '@type': 'TravelAgency', name: 'Selamat Voyage', url: base },
+      offers: { '@type': 'Offer', priceCurrency: 'MYR', availability: 'https://schema.org/InStock' },
+      aggregateRating: data.rating ? { '@type': 'AggregateRating', ratingValue: String(data.rating), reviewCount: String(data.reviews), bestRating: '5' } : undefined,
+      contentLocation: { '@type': 'Place', name: data.lieu },
+    });
+
+    return () => {
+      document.title = 'Selamat Voyage — Excursions sur-mesure en Malaisie | Guide francophone';
+    };
+  }, [slug, data]);
 
   if (!data) return (
     <div className="min-h-screen flex items-center justify-center" style={{background: cream}}>
@@ -601,31 +664,49 @@ export default function ExcursionPage() {
   return (
     <div className="overflow-x-hidden">
       {/* Nav */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navOpaque ? 'bg-white/95 backdrop-blur-2xl shadow-sm' : ''}`}>
+      {/* Breadcrumb JSON-LD */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://selamatvoyage.com/' },
+          { '@type': 'ListItem', position: 2, name: 'Excursions', item: 'https://selamatvoyage.com/#excursions' },
+          { '@type': 'ListItem', position: 3, name: data.name, item: `https://selamatvoyage.com/excursion/${slug}` },
+        ]
+      })}} />
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-transparent">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <Link to="/">
-            <img src="/images/logo.png" alt="Selamat Voyage" className={`transition-all duration-300 ${navOpaque ? 'h-20' : 'h-28'}`} />
+            <img src="/images/logo.png" alt="Selamat Voyage" className="h-16 sm:h-24 lg:h-28 transition-all duration-300" />
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/" className={`hidden md:inline-flex text-sm font-medium px-4 py-2 rounded-full transition-colors ${navOpaque?'text-gray-500 hover:text-teal-600':'text-white/70 hover:text-white'}`}>
+            <Link to="/" className={`hidden md:inline-flex text-sm font-medium px-4 py-2 rounded-full transition-colors ${navOpaque?'text-gray-600 hover:text-teal-600':'text-white/70 hover:text-white'}`}>
               ← Toutes les excursions
             </Link>
-            <a href={waLink} target="_blank" rel="noopener noreferrer"
-              className="bg-teal-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-teal-400 transition-colors inline-flex items-center gap-2 shadow-md shadow-teal-500/20">
+            <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label={`Réserver ${data.name} via WhatsApp`}
+              className="btn-cta bg-teal-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-teal-400 inline-flex items-center gap-2 shadow-md shadow-teal-500/20">
               <iconify-icon icon="simple-icons:whatsapp" width="16" height="16" style={{color:'#fff'}}></iconify-icon> Réserver
             </a>
           </div>
         </div>
       </nav>
 
+      <main>
       {/* ═══════════ HERO — Full-bleed immersive ═══════════ */}
       <section className="relative h-screen min-h-[500px] md:min-h-[700px] overflow-hidden">
         {data.video ? (
-          <video ref={videoRef} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover"
-            onLoadedMetadata={() => { if(videoRef.current) videoRef.current.currentTime = 4; }}
-            style={{transform:`scale(${1 + scrollY*0.0003}) translateY(${scrollY*0.15}px)`}}>
-            <source src={data.video} type="video/mp4" />
-          </video>
+          <>
+            <video ref={videoRef} autoPlay muted loop playsInline poster={data.hero}
+              className="absolute inset-0 w-full h-full object-cover"
+              onLoadedMetadata={() => { if(videoRef.current) videoRef.current.currentTime = 4; }}
+              onError={() => { if(videoRef.current) videoRef.current.style.display = 'none'; }}
+              style={{transform:`scale(${1 + scrollY*0.0003}) translateY(${scrollY*0.15}px)`}}>
+              <source src={data.video} type={data.video.endsWith('.mov') ? 'video/quicktime' : 'video/mp4'} />
+              {data.video.endsWith('.mov') && <source src={data.video} type="video/mp4" />}
+            </video>
+            <img src={data.hero} className="absolute inset-0 w-full h-full object-cover -z-10" alt={data.name}
+              style={{transform:`scale(${1 + scrollY*0.0003}) translateY(${scrollY*0.15}px)`}} />
+          </>
         ) : (
           <img src={data.hero} className="absolute inset-0 w-full h-full object-cover" alt={data.name}
             style={{transform:`scale(${1 + scrollY*0.0003}) translateY(${scrollY*0.15}px)`}} />
@@ -640,7 +721,7 @@ export default function ExcursionPage() {
               {data.name}
             </h1>
             <a href={waLink} target="_blank" rel="noopener noreferrer"
-              className="bg-teal-500 text-white px-8 py-4 rounded-full text-base font-bold hover:bg-teal-400 transition-all hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-teal-500/30"
+              className="btn-shimmer btn-cta text-white px-8 py-4 rounded-full text-base font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/30"
               style={{opacity: Math.max(0, 1 - scrollY/600)}}>
               <iconify-icon icon="simple-icons:whatsapp" width="20" height="20" style={{color:'#fff'}}></iconify-icon> Réserver cette excursion
             </a>
@@ -654,7 +735,7 @@ export default function ExcursionPage() {
       </section>
 
       {/* ═══════════ INTRO — editorial ═══════════ */}
-      <section className="py-24 px-6" style={{background: cream}}>
+      <section className="py-24 px-6 reveal" style={{background: cream}}>
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-6">L'expérience</p>
           <h2 className="text-2xl md:text-4xl tracking-tight font-bold text-gray-900 leading-snug mb-10">{data.shortDesc}</h2>
@@ -668,12 +749,12 @@ export default function ExcursionPage() {
               { icon: 'lucide:gauge', v: data.difficulty },
             ].map((p,i) => (
               <div key={i} className="inline-flex items-center gap-2 rounded-full px-4 py-2" style={{background: creamDark}}>
-                <iconify-icon icon={p.icon} width="14" height="14" style={{color:'#0d9488'}}></iconify-icon>
+                <iconify-icon icon={p.icon} width="14" height="14" style={{color:'#65bfae'}}></iconify-icon>
                 <span className="text-xs font-semibold text-gray-700">{p.v}</span>
               </div>
             ))}
             <div className="inline-flex items-center gap-1.5 rounded-full px-4 py-2" style={{background: creamDark}}>
-              <iconify-icon icon="lucide:star" width="14" height="14" style={{color:'#fbbf24'}}></iconify-icon>
+              <iconify-icon icon="mdi:star" width="14" height="14" style={{color:'#fbbf24'}}></iconify-icon>
               <span className="text-xs font-semibold text-gray-700">{data.rating}/5 — {data.reviews} avis</span>
             </div>
           </div>
@@ -707,20 +788,44 @@ export default function ExcursionPage() {
         </section>
       )}
 
-      {/* ═══════════ PHOTO GALLERY ═══════════ */}
-      <section className="px-6 py-10" style={{background: cream}}>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" style={{gridAutoRows:'220px'}}>
-          {data.gallery.map((img, i) => (
-            <div key={i} className={`rounded-2xl overflow-hidden relative group cursor-pointer ${i===0?'sm:col-span-2 sm:row-span-2':''}`}>
-              <img src={img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      {/* ═══════════ PHOTO GALLERY / VIDEO ═══════════ */}
+      <section className="px-6 py-10 reveal" style={{background: cream}}>
+        {data.video ? (
+          <div className="max-w-5xl mx-auto">
+            <div className="rounded-3xl overflow-hidden shadow-xl">
+              <video autoPlay muted loop playsInline className="w-full h-auto object-cover" poster={data.hero}>
+                <source src={data.video} type="video/mp4" />
+              </video>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" style={{gridAutoRows:'220px'}}>
+            {data.gallery.map((img, i) => (
+              <div key={i} onClick={() => setLightbox(img)} className={`rounded-2xl overflow-hidden relative group cursor-pointer ${i===0?'sm:col-span-2 sm:row-span-2':''}`}>
+                <img src={img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" alt={`${data.name} — photo ${i+1}`} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <iconify-icon icon="lucide:zoom-in" width="22" height="22" style={{color:'#fff'}}></iconify-icon>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <button className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors" onClick={() => setLightbox(null)}>
+            <iconify-icon icon="lucide:x" width="24" height="24" style={{color:'#fff'}}></iconify-icon>
+          </button>
+          <img src={lightbox} className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl" alt="Agrandissement" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
+
       {/* ═══════════ ITINERARY — horizontal scrolling cards ═══════════ */}
-      <section className="py-24 px-6" style={{background: cream}}>
+      <section className="py-24 px-6 reveal" style={{background: cream}}>
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
             <div>
@@ -734,12 +839,12 @@ export default function ExcursionPage() {
           </div>
           <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory" style={{scrollbarWidth:'none'}}>
             {data.itinerary.map((step, i) => (
-              <div key={i} className="snap-start shrink-0 w-64 rounded-3xl p-6 relative group hover:shadow-xl transition-all duration-300" style={{background: i===0?'#0d9488':creamDark}}>
+              <div key={i} className="snap-start shrink-0 w-64 rounded-3xl p-6 relative group hover:shadow-xl transition-all duration-300" style={{background: i===0?'#65bfae':creamDark}}>
                 <div className={`text-[48px] font-bold leading-none mb-4 select-none ${i===0?'text-white/10':'text-teal-500/10'}`}>
                   {String(i+1).padStart(2,'0')}
                 </div>
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${i===0?'bg-white/20':'bg-teal-50'}`}>
-                  <iconify-icon icon={step.icon} width="20" height="20" style={{color:i===0?'#fff':'#0d9488'}}></iconify-icon>
+                  <iconify-icon icon={step.icon} width="20" height="20" style={{color:i===0?'#fff':'#65bfae'}}></iconify-icon>
                 </div>
                 <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${i===0?'text-teal-200':'text-teal-500'}`}>{step.time}</div>
                 <h3 className={`font-bold text-sm mb-2 ${i===0?'text-white':'text-gray-900'}`}>{step.title}</h3>
@@ -752,12 +857,12 @@ export default function ExcursionPage() {
 
 
       {/* ═══════════ INCLUDES + TOBRING ═══════════ */}
-      <section className="py-24 px-6" style={{background: cream}}>
+      <section className="py-24 px-6 reveal" style={{background: cream}}>
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
           <div className="rounded-3xl p-8 relative overflow-hidden" style={{background: creamDark}}>
             <div className="text-[100px] font-bold text-teal-500/5 absolute -top-6 -right-4 leading-none select-none">✓</div>
             <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <iconify-icon icon="lucide:check-circle" width="20" height="20" style={{color:'#0d9488'}}></iconify-icon>
+              <iconify-icon icon="lucide:check-circle" width="20" height="20" style={{color:'#65bfae'}}></iconify-icon>
               Ce qui est inclus
             </h3>
             <div className="space-y-3">
@@ -774,14 +879,14 @@ export default function ExcursionPage() {
           <div className="rounded-3xl p-8 relative overflow-hidden" style={{background: creamDark}}>
             <div className="text-[100px] font-bold text-teal-500/5 absolute -top-6 -right-4 leading-none select-none">🎒</div>
             <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <iconify-icon icon="lucide:backpack" width="20" height="20" style={{color:'#0d9488'}}></iconify-icon>
+              <iconify-icon icon="lucide:backpack" width="20" height="20" style={{color:'#65bfae'}}></iconify-icon>
               À apporter
             </h3>
             <div className="space-y-3">
               {data.toBring.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 group">
                   <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm group-hover:scale-110 transition-transform">
-                    <iconify-icon icon="lucide:circle-dot" width="12" height="12" style={{color:'#0d9488'}}></iconify-icon>
+                    <iconify-icon icon="lucide:circle-dot" width="12" height="12" style={{color:'#65bfae'}}></iconify-icon>
                   </div>
                   <span className="text-sm text-gray-700">{item}</span>
                 </div>
@@ -792,13 +897,13 @@ export default function ExcursionPage() {
       </section>
 
       {/* ═══════════ TESTIMONIALS ═══════════ */}
-      <section className="py-24 px-6" style={{background: creamDark}}>
+      <section className="py-24 px-6 reveal" style={{background: creamDark}}>
         <div className="max-w-5xl mx-auto">
           {/* Header with rating badge */}
           <div className="flex flex-col items-center mb-16">
             <div className="flex items-center gap-3 mb-6 rounded-full px-5 py-2.5" style={{background: cream}}>
               <div className="flex gap-0.5">
-                {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="lucide:star" width="16" height="16" style={{color:'#fbbf24'}}></iconify-icon>)}
+                {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="mdi:star" width="16" height="16" style={{color:'#fbbf24'}}></iconify-icon>)}
               </div>
               <span className="text-sm font-bold text-gray-900">{data.rating}/5</span>
               <span className="text-xs text-gray-400">·</span>
@@ -808,14 +913,14 @@ export default function ExcursionPage() {
           </div>
 
           {/* Featured testimonial */}
-          <div className="rounded-3xl p-10 md:p-14 mb-8 relative overflow-hidden" style={{background: '#0d9488'}}>
+          <div className="rounded-3xl p-10 md:p-14 mb-8 relative overflow-hidden" style={{background: '#65bfae'}}>
             <div className="absolute top-6 left-10 text-[120px] font-bold leading-none text-white/5 select-none">"</div>
             <div className="relative z-10 max-w-3xl mx-auto text-center">
               <p className="text-white text-lg md:text-2xl font-medium leading-relaxed mb-8 italic">
                 "{data.testimonials[0].text}"
               </p>
               <div className="flex items-center justify-center gap-4">
-                <img src={data.testimonials[0].img} className="w-14 h-14 rounded-full object-cover border-3 border-white/20" alt={data.testimonials[0].name} />
+                <img src={data.testimonials[0].img} className="w-14 h-14 rounded-full object-cover border-3 border-white/20" loading="lazy" alt={`Photo de ${data.testimonials[0].name}`} />
                 <div className="text-left">
                   <div className="text-white font-bold">{data.testimonials[0].name}</div>
                   <div className="text-white/50 text-sm">{data.testimonials[0].from}</div>
@@ -830,15 +935,15 @@ export default function ExcursionPage() {
               <div key={i} className="rounded-3xl p-8 relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1" style={{background: cream}}>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex gap-0.5">
-                    {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="lucide:star" width="12" height="12" style={{color:'#14b8a6'}}></iconify-icon>)}
+                    {[...Array(5)].map((_,j) => <iconify-icon key={j} icon="mdi:star" width="12" height="12" style={{color:'#65bfae'}}></iconify-icon>)}
                   </div>
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                    <iconify-icon icon="lucide:badge-check" width="10" height="10" style={{color:'#0d9488'}}></iconify-icon> Vérifié
+                    <iconify-icon icon="lucide:badge-check" width="10" height="10" style={{color:'#65bfae'}}></iconify-icon> Vérifié
                   </span>
                 </div>
                 <p className="text-gray-600 text-sm leading-relaxed mb-6">"{t.text}"</p>
                 <div className="flex items-center gap-3">
-                  <img src={t.img} className="w-10 h-10 rounded-full object-cover shadow-sm" alt={t.name} />
+                  <img src={t.img} className="w-10 h-10 rounded-full object-cover shadow-sm" loading="lazy" alt={`Photo de ${t.name}`} />
                   <div>
                     <div className="font-bold text-sm text-gray-900">{t.name}</div>
                     <div className="text-xs text-gray-400">{t.from}</div>
@@ -851,14 +956,14 @@ export default function ExcursionPage() {
       </section>
 
       {/* ═══════════ NEARBY — hover cards ═══════════ */}
-      <section className="py-24 px-6" style={{background: cream}}>
+      <section className="py-24 px-6 reveal" style={{background: cream}}>
         <div className="max-w-5xl mx-auto">
           <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-3 text-center">À découvrir aussi</p>
           <h2 className="text-3xl md:text-4xl tracking-tight font-bold text-gray-900 text-center mb-14">D'autres aventures<br />vous attendent.</h2>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             {data.nearby.map((ex, i) => (
               <Link key={i} to={`/excursion/${ex.slug}`} className="group relative rounded-3xl overflow-hidden h-52 sm:h-64 md:h-72 block">
-                <img src={ex.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={ex.name} />
+                <img src={ex.image} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" alt={`Excursion ${ex.name} à ${ex.lieu}`} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent group-hover:from-black/70 transition-all"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <div className="text-white text-lg font-bold mb-1 group-hover:translate-y-0 translate-y-1 transition-transform">{ex.name}</div>
@@ -884,7 +989,7 @@ export default function ExcursionPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href={waLink} target="_blank" rel="noopener noreferrer"
-              className="bg-teal-500 text-white px-8 py-4 rounded-full text-base font-bold hover:bg-teal-400 transition-all hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-teal-500/25">
+              className="btn-shimmer btn-cta text-white px-8 py-4 rounded-full text-base font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/25">
               <iconify-icon icon="simple-icons:whatsapp" width="20" height="20" style={{color:'#fff'}}></iconify-icon> Réserver sur WhatsApp
             </a>
             <Link to="/" className="border-2 border-gray-200 text-gray-600 px-8 py-4 rounded-full text-base font-semibold hover:border-teal-400 hover:text-teal-600 transition-colors">
@@ -906,6 +1011,13 @@ export default function ExcursionPage() {
           </div>
         </div>
       </footer>
+
+    {/* WhatsApp FAB — mobile, hidden in hero */}
+    <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="Réserver sur WhatsApp"
+      className={`wa-fab fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25d366] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 lg:hidden ${scrollY > 500 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <iconify-icon icon="simple-icons:whatsapp" width="28" height="28" style={{color:'#fff'}}></iconify-icon>
+    </a>
+    </main>
 
     </div>
   );
