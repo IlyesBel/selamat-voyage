@@ -14,7 +14,6 @@ const EXCURSIONS = [
   { id:8, name:'SkyCab + Sky Bridge', lieu:'Langkawi', tags:['Culture','Vue panoramique'], image:'/images/skycab-1.jpg', tested:true, slug:'skycab' },
   { id:9, name:"Sanctuaire d'éléphants", lieu:'Kuala Gandah', tags:['Vie sauvage','Famille'], image:'/images/elephant-1.jpg', tested:false, slug:'elephant-sanctuary' },
   { id:10, name:'Snorkeling', lieu:'Tioman', tags:['Plongée','Plage'], image:'/images/snorkeling-tioman-2.jpg', tested:true, slug:'snorkeling-tioman' },
-  { id:11, name:'Flyboard', lieu:'Putrajaya', tags:['Aventure','Adrénaline'], image:'https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=600&q=80', tested:false },
 ];
 
 const QUIZ = [
@@ -218,7 +217,7 @@ export default function App() {
       </section>
 
       {/* Photo Marquee — premium vertical scroll */}
-      <section className="relative overflow-hidden h-[360px] sm:h-[440px] md:h-[540px]" style={{background:cream}}>
+      <section className="relative overflow-hidden h-[260px] sm:h-[440px] md:h-[540px]" style={{background:cream}}>
         {/* Fade edges */}
         <div className="absolute top-0 left-0 right-0 h-20 z-10" style={{background:`linear-gradient(to bottom, ${cream}, transparent)`}}></div>
         <div className="absolute bottom-0 left-0 right-0 h-20 z-10" style={{background:`linear-gradient(to top, ${cream}, transparent)`}}></div>
@@ -275,30 +274,30 @@ export default function App() {
       </section>
 
       {/* Services / How it works — timeline */}
-      <section className="py-28 px-6 reveal" style={{background:creamDark}}>
+      <section className="py-8 md:py-28 px-6 reveal" style={{background:creamDark}}>
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-20">
+          <div className="text-center mb-6 md:mb-20">
             <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">Comment ça marche</p>
             <h2 className="text-3xl md:text-5xl tracking-tight font-bold text-gray-900">Trois étapes vers<br />votre voyage idéal.</h2>
           </div>
           <div className="relative">
             {/* Connecting line */}
             <div className="hidden md:block absolute top-12 left-[16.67%] right-[16.67%] h-px bg-teal-200"></div>
-            <div className="grid md:grid-cols-3 gap-12 md:gap-8 reveal-stagger">
+            <div className="grid grid-cols-3 gap-4 md:gap-8 reveal-stagger">
               {[
                 { n:'01', title:'Répondez au quiz', desc:'5 questions sur vos envies — durée, style, intérêts. Ça prend 2 minutes.', icon:'lucide:message-circle' },
                 { n:'02', title:'Recevez votre itinéraire', desc:'Un parcours sur-mesure, personnalisé selon vos réponses, envoyé sur WhatsApp.', icon:'lucide:map' },
                 { n:'03', title:'On s\'occupe de tout', desc:'Réservations, guides, transport — vous n\'avez plus qu\'à profiter.', icon:'lucide:check-circle' },
               ].map((s,i) => (
                 <div key={i} className="text-center relative">
-                  <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 relative" style={{background:cream}}>
-                    <div className="w-16 h-16 rounded-full bg-teal-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
-                      <iconify-icon icon={s.icon} width="26" height="26" style={{color:'#fff'}}></iconify-icon>
+                  <div className="w-14 h-14 md:w-24 md:h-24 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-6 relative" style={{background:cream}}>
+                    <div className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-teal-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
+                      <iconify-icon icon={s.icon} width="20" height="20" style={{color:'#fff'}}></iconify-icon>
                     </div>
                   </div>
-                  <div className="text-5xl font-bold text-teal-500 mb-2">{s.n}</div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">{s.desc}</p>
+                  <div className="text-2xl md:text-5xl font-bold text-teal-500 mb-1 md:mb-2">{s.n}</div>
+                  <h3 className="text-xs md:text-lg font-bold text-gray-900 mb-1 md:mb-2">{s.title}</h3>
+                  <p className="text-[10px] md:text-sm text-gray-500 leading-relaxed max-w-xs mx-auto hidden sm:block">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -307,10 +306,10 @@ export default function App() {
       </section>
 
       {/* Quiz — Typeform-style full-screen split */}
-      <section ref={qRef} id="quiz" className="relative min-h-screen">
+      <section ref={qRef} id="quiz" className="relative lg:min-h-screen">
         {!done ? (
-          <div className="min-h-screen grid lg:grid-cols-2">
-            {/* Left — full-bleed photo */}
+          <div className="lg:min-h-screen grid lg:grid-cols-2">
+            {/* Left — full-bleed photo (desktop) + mobile header */}
             <div className="hidden lg:block relative">
               <img
                 key={step}
@@ -342,11 +341,35 @@ export default function App() {
             </div>
 
             {/* Right — questions */}
-            <div className="flex flex-col justify-center px-8 md:px-16 lg:px-20 py-20 lg:py-12" style={{background:cream}}>
+            <div className="flex flex-col justify-center lg:px-20 lg:py-12" style={{background:cream}}>
               {step < QUIZ.length ? (
-                <div className="max-w-xl w-full">
-                  {/* Top bar — back + step circles */}
-                  <div className="flex items-center justify-between mb-14">
+                <div className="w-full">
+                  {/* Mobile hero header */}
+                  <div className="lg:hidden">
+                    <div className="px-6 pt-6 pb-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          {step > 0 ? (
+                            <button onClick={()=>setStep(s=>s-1)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                              <iconify-icon icon="lucide:arrow-left" width="16" height="16" style={{color:'#6b7280'}}></iconify-icon>
+                            </button>
+                          ) : <div className="w-8"></div>}
+                          <span className="text-gray-500 text-xs font-semibold">Étape {step+1}/{QUIZ.length}</span>
+                        </div>
+                        <div className="bg-teal-50 rounded-full px-3 py-1">
+                          <span className="text-teal-600 text-xs font-bold">{Math.round(((step+1)/QUIZ.length)*100)}%</span>
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-teal-500 rounded-full transition-all duration-500 ease-out" style={{width:`${((step+1)/QUIZ.length)*100}%`}}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-6 py-6 lg:px-0 lg:py-0 max-w-xl">
+                  {/* Desktop top bar */}
+                  <div className="hidden lg:flex items-center justify-between mb-14">
                     <div className="flex items-center gap-3">
                       {step > 0 ? (
                         <button onClick={()=>setStep(s=>s-1)} className="text-gray-400 hover:text-gray-700 transition-colors">
@@ -363,42 +386,63 @@ export default function App() {
                   </div>
 
                   {/* Question */}
-                  <h3 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug mb-3">{QUIZ[step].title}</h3>
-                  {QUIZ[step].subtitle && <p className="text-sm text-gray-400 mb-8">{QUIZ[step].subtitle}</p>}
-                  {!QUIZ[step].subtitle && <div className="mb-8"></div>}
+                  <h3 className="text-xl md:text-3xl font-bold text-gray-900 leading-snug mb-2 lg:mb-3">{QUIZ[step].title}</h3>
+                  {QUIZ[step].subtitle && <p className="text-xs lg:text-sm text-gray-400 mb-5 lg:mb-8">{QUIZ[step].subtitle}</p>}
+                  {!QUIZ[step].subtitle && <div className="mb-5 lg:mb-8"></div>}
 
                   {/* Options — visual tiles grid */}
-                  <div className={`grid gap-4 ${QUIZ[step].options.length > 4 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2'}`}>
+                  <div className={`grid gap-3 lg:gap-4 ${QUIZ[step].options.length > 4 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2'}`}>
                     {QUIZ[step].options.map(opt => (
                       <button key={opt.value} onClick={()=>pick(QUIZ[step].id, opt.value, QUIZ[step].multi, QUIZ[step].maxSelect||3)}
-                        className={`relative text-left p-5 rounded-2xl transition-all group ${isSel(QUIZ[step].id,opt.value) ? 'bg-teal-500 shadow-lg shadow-teal-500/20 scale-[1.02] quiz-bounce' : 'bg-white shadow-sm hover:shadow-md hover:scale-[1.01]'}`}>
+                        className={`relative text-left p-4 lg:p-5 rounded-2xl transition-all group border-2 ${isSel(QUIZ[step].id,opt.value) ? 'bg-teal-500 shadow-lg shadow-teal-500/20 scale-[1.02] quiz-bounce border-teal-500' : 'bg-white shadow-sm hover:shadow-md hover:scale-[1.01] border-transparent'}`}>
                         {isSel(QUIZ[step].id,opt.value) && (
-                          <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
+                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
                             <iconify-icon icon="lucide:check" width="12" height="12" style={{color:'#fff'}}></iconify-icon>
                           </div>
                         )}
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isSel(QUIZ[step].id,opt.value)?'bg-white/20':'bg-teal-50'}`}>
-                          <iconify-icon icon={opt.icon} width="24" height="24" style={{color:isSel(QUIZ[step].id,opt.value)?'#fff':'#65bfae'}}></iconify-icon>
+                        <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center mb-3 lg:mb-4 ${isSel(QUIZ[step].id,opt.value)?'bg-white/20':'bg-teal-50'}`}>
+                          <iconify-icon icon={opt.icon} width="22" height="22" style={{color:isSel(QUIZ[step].id,opt.value)?'#fff':'#65bfae'}}></iconify-icon>
                         </div>
-                        <div className={`font-bold text-sm mb-1 ${isSel(QUIZ[step].id,opt.value)?'text-white':'text-gray-900'}`}>{opt.label}</div>
-                        {opt.desc && <div className={`text-xs leading-relaxed ${isSel(QUIZ[step].id,opt.value)?'text-white/70':'text-gray-400'}`}>{opt.desc}</div>}
+                        <div className={`font-bold text-xs lg:text-sm mb-0.5 lg:mb-1 ${isSel(QUIZ[step].id,opt.value)?'text-white':'text-gray-900'}`}>{opt.label}</div>
+                        {opt.desc && <div className={`text-[10px] lg:text-xs leading-relaxed ${isSel(QUIZ[step].id,opt.value)?'text-white/70':'text-gray-400'}`}>{opt.desc}</div>}
                       </button>
                     ))}
                   </div>
 
                   {QUIZ[step].multi && (
-                    <div className="mt-8">
+                    <div className="mt-6 lg:mt-8">
                       <button onClick={()=>setStep(s=>s+1)} disabled={!(ans[QUIZ[step].id]||[]).length}
-                        className="btn-cta bg-teal-500 text-white px-10 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2">
+                        className="btn-cta bg-teal-500 text-white px-10 py-3.5 rounded-full text-sm font-semibold hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2 w-full sm:w-auto justify-center">
                         Continuer <iconify-icon icon="lucide:arrow-right" width="16" height="16" style={{color:'#fff'}}></iconify-icon>
                       </button>
                     </div>
                   )}
+                  </div>
                 </div>
               ) : (
                 /* Contact form */
-                <div className="max-w-xl w-full">
-                  <div className="flex items-center justify-between mb-14">
+                <div className="w-full">
+                  {/* Mobile header for contact */}
+                  <div className="lg:hidden">
+                    <div className="px-6 pt-6 pb-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <button onClick={()=>setStep(s=>s-1)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <iconify-icon icon="lucide:arrow-left" width="16" height="16" style={{color:'#6b7280'}}></iconify-icon>
+                          </button>
+                          <span className="text-gray-500 text-xs font-semibold">Dernière étape</span>
+                        </div>
+                        <div className="bg-teal-50 rounded-full px-3 py-1">
+                          <span className="text-teal-600 text-xs font-bold">100%</span>
+                        </div>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-teal-500 rounded-full w-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="px-6 py-6 lg:px-0 lg:py-0 max-w-xl">
+                  <div className="hidden lg:flex items-center justify-between mb-14">
                     <div className="flex items-center gap-3">
                       <button onClick={()=>setStep(s=>s-1)} className="text-gray-400 hover:text-gray-700 transition-colors">
                         <iconify-icon icon="lucide:arrow-left" width="20" height="20" style={{color:'#9ca3af'}}></iconify-icon>
@@ -435,6 +479,7 @@ export default function App() {
                       <iconify-icon icon="simple-icons:whatsapp" width="16" height="16" style={{color:'#fff'}}></iconify-icon> Recevoir mon itinéraire
                     </button>
                   </form>
+                  </div>
                 </div>
               )}
             </div>
@@ -459,10 +504,10 @@ export default function App() {
       </section>
 
       {/* Excursions — tilted photo strip */}
-      <section id="excursions" className="pt-28 pb-16 overflow-hidden" style={{background:cream}}>
-        <div className="max-w-6xl mx-auto px-6 mb-14">
+      <section id="excursions" className="pt-8 md:pt-28 pb-6 md:pb-16 overflow-hidden" style={{background:cream}}>
+        <div className="max-w-6xl mx-auto px-6 mb-4 md:mb-14">
           <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4 text-center">Nos excursions</p>
-          <h2 className="text-3xl md:text-5xl tracking-tight font-bold text-gray-900 text-center">Nos destinations populaires</h2>
+          <h2 className="text-2xl md:text-5xl tracking-tight font-bold text-gray-900 text-center">Nos destinations populaires</h2>
         </div>
         <div className="relative py-8" style={{background:cream}}>
           <div className="flex gap-5 px-6" style={{animation:'scrollStrip 40s linear infinite', width:'max-content'}}
@@ -495,9 +540,9 @@ export default function App() {
       </section>
 
       {/* About — editorial with overlapping images */}
-      <section id="about" className="py-28 px-6 reveal" style={{background:cream}}>
+      <section id="about" className="py-8 md:py-28 px-6 reveal" style={{background:cream}}>
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center mb-8 md:mb-24">
             <div>
               <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">Pourquoi nous</p>
               <h2 className="text-3xl md:text-5xl tracking-tight font-bold text-gray-900 mb-6 leading-tight">Des excursions<br />inoubliables.</h2>
@@ -528,14 +573,14 @@ export default function App() {
               </div>
             </div>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 reveal-stagger">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 reveal-stagger">
             {[
               { icon:'lucide:tree-palm', title:'Îles paradisiaques', desc:'Langkawi, Tioman, Perhentian — le paradis existe.' },
               { icon:'lucide:users', title:'Guides francophones', desc:'Un réseau de guides locaux qui parlent votre langue.' },
               { icon:'lucide:compass', title:'Sur-mesure', desc:'Chaque itinéraire est personnalisé selon vos envies.' },
               { icon:'lucide:message-circle', title:'Via WhatsApp', desc:'Un message suffit. On répond en quelques minutes.' },
             ].map((f,i) => (
-              <div key={i} className="rounded-2xl p-7 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-default" style={{background:creamDark}}>
+              <div key={i} className="rounded-2xl p-4 md:p-7 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-default" style={{background:creamDark}}>
                 <div className="w-11 h-11 rounded-xl bg-teal-500 flex items-center justify-center mb-5 shadow-md shadow-teal-500/20">
                   <iconify-icon icon={f.icon} width="20" height="20" style={{color:'#fff'}}></iconify-icon>
                 </div>
@@ -548,7 +593,7 @@ export default function App() {
       </section>
 
       {/* Stats banner — glassmorphism */}
-      <section ref={counterRef} className="relative py-20 px-6">
+      <section ref={counterRef} className="relative py-8 md:py-20 px-6">
         <img src="/images/cameron-highlands.jpg" className="absolute inset-0 w-full h-full object-cover" loading="lazy" alt="Plantations de thé à Cameron Highlands" />
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="relative z-10 max-w-4xl mx-auto">
@@ -578,9 +623,9 @@ export default function App() {
       </section>
 
       {/* Our Story — editorial split with staggered images */}
-      <section id="story" className="py-28 px-6 reveal" style={{background:creamDark}}>
+      <section id="story" className="py-8 md:py-28 px-6 reveal" style={{background:creamDark}}>
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-20 items-center">
             {/* Staggered photos */}
             <div className="relative h-[300px] sm:h-[400px] lg:h-[480px]">
               <div className="absolute top-0 left-0 w-[60%] h-[70%] rounded-3xl overflow-hidden shadow-2xl shadow-black/10">
@@ -631,9 +676,9 @@ export default function App() {
       </section>
 
       {/* Testimonials — featured + grid */}
-      <section className="py-28 px-6 reveal" style={{background:cream}}>
+      <section className="py-8 md:py-28 px-6 reveal" style={{background:cream}}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-6 md:mb-16">
             <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">Témoignages</p>
             <h2 className="text-3xl md:text-5xl tracking-tight font-bold text-gray-900">Ce que disent<br />nos voyageurs.</h2>
           </div>
@@ -683,9 +728,9 @@ export default function App() {
       </section>
 
       {/* FAQ — numbered cards */}
-      <section id="faq" className="py-28 px-6 reveal" style={{background:creamDark}}>
+      <section id="faq" className="py-8 md:py-28 px-6 reveal" style={{background:creamDark}}>
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <p className="text-teal-600 text-xs font-semibold tracking-widest uppercase mb-4">FAQ</p>
             <h2 className="text-3xl md:text-5xl tracking-tight font-bold text-gray-900">Questions fréquentes.</h2>
           </div>
