@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-const WA = '60123456789';
+const WA = '33761076318';
 
 const EXCURSIONS = [
   { id:1, name:'Via Ferrata', lieu:'Tioman', tags:['Aventure','Adrénaline'], image:'/images/via-ferrata-3.jpg', tested:true, slug:'via-ferrata' },
@@ -67,6 +67,7 @@ export default function App() {
   const [ans, setAns] = useState({});
   const [contact, setContact] = useState({ wa:'', email:'', ok:false });
   const [done, setDone] = useState(false);
+  const [sending, setSending] = useState(false);
   const [faq, setFaq] = useState(null);
   const [toast, setToast] = useState(null);
   const [menu, setMenu] = useState(false);
@@ -142,7 +143,22 @@ export default function App() {
     }
   };
 
-  const submit = (e) => { e.preventDefault(); if(contact.wa && contact.ok) setDone(true); };
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!contact.wa || !contact.ok || sending) return;
+    setSending(true);
+    try {
+      await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsapp: contact.wa, email: contact.email, answers: ans }),
+      });
+    } catch (err) {
+      console.error('Lead submission error:', err);
+    }
+    setSending(false);
+    setDone(true);
+  };
   const isSel = (qid,val) => { const a=ans[qid]; return Array.isArray(a)?a.includes(val):a===val; };
 
   const T = '#0D9488'; // teal-600
@@ -474,9 +490,9 @@ export default function App() {
                       <input type="checkbox" checked={contact.ok} onChange={e=>setContact({...contact,ok:e.target.checked})} className="mt-0.5 w-4 h-4 accent-teal-500 rounded" />
                       <span className="text-sm text-gray-400 leading-relaxed">J'accepte que mes données soient utilisées pour recevoir mon itinéraire.</span>
                     </label>
-                    <button type="submit" disabled={!contact.wa||!contact.ok}
+                    <button type="submit" disabled={!contact.wa||!contact.ok||sending}
                       className="btn-cta bg-teal-500 text-white py-3.5 px-10 rounded-full text-sm font-semibold hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2 mt-2">
-                      <iconify-icon icon="simple-icons:whatsapp" width="16" height="16" style={{color:'#fff'}}></iconify-icon> Recevoir mon itinéraire
+                      <iconify-icon icon="simple-icons:whatsapp" width="16" height="16" style={{color:'#fff'}}></iconify-icon> {sending ? 'Envoi en cours...' : 'Recevoir mon itinéraire'}
                     </button>
                   </form>
                   </div>
@@ -806,11 +822,18 @@ export default function App() {
         </div>
       </footer>
 
-    {/* WhatsApp FAB — mobile, hidden in hero */}
-    <a href={`https://wa.me/${WA}`} target="_blank" rel="noopener noreferrer" aria-label="Nous contacter sur WhatsApp"
-      className={`wa-fab fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25d366] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 lg:hidden ${navSolid ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-      <iconify-icon icon="simple-icons:whatsapp" width="28" height="28" style={{color:'#fff'}}></iconify-icon>
-    </a>
+    {/* WhatsApp chat widget */}
+    <div className={`fixed bottom-6 right-6 z-50 flex items-end gap-3 transition-all duration-500 ${navSolid ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div className="hidden sm:block bg-white rounded-2xl shadow-lg px-4 py-3 max-w-[200px] border border-gray-100 relative">
+        <p className="text-sm text-gray-700 font-medium">Une question ? 💬</p>
+        <p className="text-xs text-gray-400">Réponse en quelques minutes</p>
+        <div className="absolute -right-2 bottom-4 w-3 h-3 bg-white border-r border-b border-gray-100 rotate-[-45deg]"></div>
+      </div>
+      <a href={`https://wa.me/${WA}?text=${encodeURIComponent('Bonjour, je suis intéressé(e) par vos excursions en Malaisie !')}`} target="_blank" rel="noopener noreferrer" aria-label="Nous contacter sur WhatsApp"
+        className="w-14 h-14 bg-[#25d366] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 shrink-0">
+        <iconify-icon icon="simple-icons:whatsapp" width="28" height="28" style={{color:'#fff'}}></iconify-icon>
+      </a>
+    </div>
     </main>
     </>
   );

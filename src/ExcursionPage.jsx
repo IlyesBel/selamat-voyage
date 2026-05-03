@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
-const WA = '60123456789';
+const WA = '33761076318';
 const cream = '#FDF8F0';
 const creamDark = '#F5EDDF';
 
