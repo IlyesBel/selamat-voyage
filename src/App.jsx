@@ -145,7 +145,7 @@ export default function App() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!contact.wa || !contact.ok || sending) return;
+    if (!contact.wa || sending) return;
     setSending(true);
     try {
       await fetch('/api/lead', {
@@ -486,11 +486,7 @@ export default function App() {
                       <input type="email" placeholder="vous@email.com" value={contact.email} onChange={e=>setContact({...contact,email:e.target.value})}
                         className="w-full bg-white border border-gray-200 rounded-xl py-3.5 px-4 text-base focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 shadow-sm" />
                     </div>
-                    <label className="flex items-start gap-3 cursor-pointer pt-2">
-                      <input type="checkbox" checked={contact.ok} onChange={e=>setContact({...contact,ok:e.target.checked})} className="mt-0.5 w-4 h-4 accent-teal-500 rounded" />
-                      <span className="text-sm text-gray-400 leading-relaxed">J'accepte que mes données soient utilisées pour recevoir mon itinéraire.</span>
-                    </label>
-                    <button type="submit" disabled={!contact.wa||!contact.ok||sending}
+                    <button type="submit" disabled={!contact.wa||sending}
                       className="btn-cta bg-teal-500 text-white py-3.5 px-10 rounded-full text-sm font-semibold hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-2 mt-2">
                       <iconify-icon icon="simple-icons:whatsapp" width="16" height="16" style={{color:'#fff'}}></iconify-icon> {sending ? 'Envoi en cours...' : 'Recevoir mon itinéraire'}
                     </button>
