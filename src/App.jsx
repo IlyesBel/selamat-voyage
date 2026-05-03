@@ -52,7 +52,7 @@ const QUIZ = [
 ];
 
 const FAQ = [
-  { q:'Est-ce que les excursions sont en français ?', a:"Oui ! Nous travaillons avec des guides francophones sur la plupart de nos excursions. Pour certaines activités, nous assurons un accompagnement bilingue français-anglais." },
+  { q:'Est-ce que les excursions sont en français ?', a:"Nous communiquons en français et en anglais pour vous accompagner au mieux. Sur place, les guides locaux parlent anglais et nous assurons la traduction si besoin." },
   { q:"Comment ça marche si j'annule ?", a:"Nous offrons une flexibilité maximale. Les conditions varient selon l'excursion, mais nous faisons toujours au mieux pour un report ou remboursement. Contactez-nous sur WhatsApp." },
   { q:'Vous êtes basés où ?', a:"Nous sommes basés en Malaisie, entre Kuala Lumpur et Langkawi. Anciens étudiants ingénieurs ayant vécu 4 ans sur place, nous connaissons le terrain." },
   { q:"L'itinéraire est vraiment gratuit ?", a:"Absolument ! Le quiz et l'itinéraire personnalisé sont 100% gratuits et sans engagement." },
@@ -588,7 +588,7 @@ export default function App() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 reveal-stagger">
             {[
               { icon:'lucide:tree-palm', title:'Îles paradisiaques', desc:'Langkawi, Tioman, Perhentian — le paradis existe.' },
-              { icon:'lucide:users', title:'Guides francophones', desc:'Un réseau de guides locaux qui parlent votre langue.' },
+              { icon:'lucide:users', title:'Accompagnement français', desc:'On vous accompagne en français de la réservation au retour.' },
               { icon:'lucide:compass', title:'Sur-mesure', desc:'Chaque itinéraire est personnalisé selon vos envies.' },
               { icon:'lucide:message-circle', title:'Via WhatsApp', desc:'Un message suffit. On répond en quelques minutes.' },
             ].map((f,i) => (
@@ -675,7 +675,7 @@ export default function App() {
                 <div className="w-px h-10 bg-gray-200"></div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-teal-600">100%</div>
-                  <div className="text-[10px] text-gray-400 font-medium">Francophone</div>
+                  <div className="text-[10px] text-gray-400 font-medium">En français</div>
                 </div>
               </div>
               <a href={`https://wa.me/${WA}?text=${encodeURIComponent('Bonjour, je souhaite en savoir plus sur Selamat Voyage !')}`} target="_blank" rel="noopener noreferrer"

@@ -645,7 +645,7 @@ export default function ExcursionPage() {
     });
 
     return () => {
-      document.title = 'Selamat Voyage — Excursions sur-mesure en Malaisie | Guide francophone';
+      document.title = 'Selamat Voyage — Excursions sur-mesure en Malaisie';
     };
   }, [slug, data]);
 
