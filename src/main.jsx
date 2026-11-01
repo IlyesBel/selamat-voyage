@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import './analytics.js'
 import App from './App.jsx'
 import ExcursionPage from './ExcursionPage.jsx'
 import './index.css'

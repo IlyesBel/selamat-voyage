@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { track } from './analytics.js';
 
 const WA = '33761076318';
 
@@ -133,12 +134,14 @@ export default function App() {
   const goQuiz = () => qRef.current?.scrollIntoView({ behavior:'smooth', block:'start' });
 
   const pick = (qid, val, multi, max) => {
+    if (Object.keys(ans).length === 0) track('quiz_started');
     if (multi) {
       const c = ans[qid] || [];
       if (c.includes(val)) setAns({...ans, [qid]: c.filter(v=>v!==val)});
       else if (c.length < max) setAns({...ans, [qid]: [...c, val]});
     } else {
       setAns({...ans, [qid]: val});
+      track('quiz_answered', { question: qid, step: step + 1 });
       setTimeout(() => setStep(s => s+1), 300);
     }
   };
@@ -158,6 +161,8 @@ export default function App() {
     }
     setSending(false);
     setDone(true);
+    // Quiz choices only: the WhatsApp number and email never leave the lead API.
+    track('quiz_completed', { answers: ans, with_email: Boolean(contact.email) });
   };
   const isSel = (qid,val) => { const a=ans[qid]; return Array.isArray(a)?a.includes(val):a===val; };
 
