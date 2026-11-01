@@ -8,6 +8,8 @@ posthog.init('phc_yoxFjTGhtYdag4P8GiFKSpkgCMcxKaMnQSbUSVLHmLmv', {
   persistence: 'memory',
   person_profiles: 'identified_only',
   capture_pageview: 'history_change',
+  // Counting visits only: session replay would record what visitors do and needs consent.
+  disable_session_recording: true,
 });
 
 export const track = (event, properties) => posthog.capture(event, properties);
